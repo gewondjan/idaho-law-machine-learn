@@ -37,6 +37,22 @@ for (index, law_topics) in enumerate(law_data["Topics (~ delimiter)"]):
     law_data["Topics (~ delimiter)"][index] = topics[min(possible_topic_indexs)]
 
 # Get Fiscal Note length make 3 buckets
+# print(law_data["Fiscal Note"])
+law_data.cost = law_data["Fiscal Note"]
+fiscal_note_lengths = law_data["Fiscal Note"].str.len()
+mean = statistics.mean(law_data["Fiscal Note"].str.len())
+stdev = statistics.stdev(law_data["Fiscal Note"].str.len())
+for (index, length) in enumerate(fiscal_note_lengths):
+    if length < mean - stdev:
+        cost = "Low"
+    elif length < mean + stdev:
+        cost = "Medium"
+    else:
+        cost = "High"
+    law_data.cost[index] = cost
+    law_data.drop("Fiscal Note", axis=1, inplace=True)
+
+print(law_data.cost)
 
 # Categorize session introduction into percentiles (4 percentiles)
 
