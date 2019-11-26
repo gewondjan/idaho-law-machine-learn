@@ -9,7 +9,7 @@ Created on Fri Nov 15 13:54:01 2019
 # Read in the data and preprossess
 ###########################################################
 
-import pandas
+import pandas as pd
 
 law_data = pandas.read_csv("../idaho-law-machine-learn/template_csv_for_idaho_bills.csv")# This encoding might be necessary: encoding="ISO-8859-1")
 
