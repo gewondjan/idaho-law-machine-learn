@@ -10,10 +10,25 @@ Created on Fri Nov 15 13:54:01 2019
 ###########################################################
 
 import pandas as pd
+import statistics
+from sklearn import preprocessing as pp
 
 law_data = pandas.read_csv("../idaho-law-machine-learn/template_csv_for_idaho_bills.csv")# This encoding might be necessary: encoding="ISO-8859-1")
 
 # Transform the first column to 'H' or 'S'
+pd.set_option('display.max_columns', None)
+list(law_data.columns)
+law_data['Bill Code Starts with H or S'] = law_data['Bill Code (starts with H or S)'].str[0]
+law_data.drop('Bill Code (starts with H or S)', axis=1, inplace=True)
+
+# Label Encoding the Starting Committee (1 of 18)
+
+le = pp.LabelEncoder()
+law_data['Starting Committee (1 of 18)'] = le.fit_transform(law_data['Starting Committee (1 of 18)'])
+
+# Label Encoded Sponsor Contact Party (R, D, or not legislator)
+
+law_data['Sponsor Contact Party (R, D, or not legislator)'] = le.fit_transform(law_data['Sponsor Contact Party (R, D, or not legislator)'])
 
 # Reduce the topics column to the set of highest priority topics
 
