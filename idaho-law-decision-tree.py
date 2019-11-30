@@ -10,12 +10,9 @@ Created on Fri Nov 15 13:54:01 2019
 ###########################################################
 
 import pandas as pd
-<<<<<<< HEAD
 import math
-=======
 import statistics
 from sklearn import preprocessing as pp
->>>>>>> 8f5a648ba1035a4e6ff93d8cdbd9a2958b68d667
 
 law_data = pd.read_csv("template_csv_for_idaho_bills.csv")# This encoding might be necessary: encoding="ISO-8859-1")
 
@@ -71,7 +68,7 @@ for (index, length) in enumerate(fiscal_note_lengths):
     law_data.cost[index] = cost
     law_data.drop("Fiscal Note", axis=1, inplace=True)
 
-print(law_data.cost)
+#print(law_data.cost)
 
 # Categorize session introduction into percentiles (4 percentiles)
 
@@ -108,9 +105,8 @@ for bill_index, bill_row in law_data.iterrows():
         startDateArray.append("NO MATCH IN SESSION DATES CSV")
         endDateArray.append("NO MATCH IN SESSION DATES CSV")
 
-law_data["session_convened_date"] =  startDateArray
-law_data["session_adjourned_date"] = endDateArray
-
+law_data.insert(0, "session_convened_date", startDateArray)
+law_data.insert(0, "session_adjourned_date", endDateArray)
 
 ## 4. Now it is as if the session start and end dates were included in the original CSV
 ## proceed to perform the calculation for percentile
@@ -123,14 +119,12 @@ for bill_index, bill_row in law_data.iterrows():
     percentile = math.ceil(numDaysIntoSessionBillIsIntroduced / numDaysInPercentile)
     session_date_percentiles.append(percentile)
     
-law_data["session_date_percentile"] = session_date_percentiles
+law_data.insert(0, "session_date_percentile", session_date_percentiles)
 
 ## 5. Remove intermediate columns that are no longer needed
-law_data.drop("session_adjourned_date", axis=1)
-law_data.drop("session_convened_date", axis=1)
-law_data.drop("Legislative Session Name", axis=1)
-law_data.drop("Legislative Session Name Long", axis=1)
-
+law_data = law_data.drop(["session_adjourned_date", "session_convened_date",\
+                          "Legislative Session Name", "Legislative Session Name Long",\
+                          "Session Introduction Date"], axis=1)
 
 print(law_data)
 
