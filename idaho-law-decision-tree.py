@@ -50,7 +50,10 @@ for (index, law_topics) in enumerate(law_data["Topics (~ delimiter)"]):
             if possible_topic == topic:
                 possible_topic_indexs.append(i)
                 break
-    law_data["Topics (~ delimiter)"][index] = topics[min(possible_topic_indexs)]
+    if len(possible_topic_indexes) == 0:
+        law_data["Topics (~ delimiter)"][index] = 'Other'
+    else:
+        law_data["Topics (~ delimiter)"][index] = topics[min(possible_topic_indexs)]
 
 # Get Fiscal Note length make 3 buckets
 # print(law_data["Fiscal Note"])
@@ -73,7 +76,7 @@ for (index, length) in enumerate(fiscal_note_lengths):
 # Categorize session introduction into percentiles (4 percentiles)
 
 ## 1. Read in the Session Date CSV and Convert to a date format that we can work with
-session_dates_data = pd.read_csv("../idaho-law-machine-learn/session_dates_csv_template.csv")
+session_dates_data = pd.read_json('./IDLegPull_session_dates.json')
 
 session_dates_data["Session_Convened"] = pd.to_datetime(session_dates_data["Session_Convened"])
 session_dates_data["Session_Adjourned"] = pd.to_datetime(session_dates_data["Session_Adjourned"])
