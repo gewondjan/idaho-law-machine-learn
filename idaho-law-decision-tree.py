@@ -50,7 +50,10 @@ for (index, law_topics) in enumerate(law_data["Topics (~ delimiter)"]):
             if possible_topic == topic:
                 possible_topic_indexs.append(i)
                 break
-    law_data["Topics (~ delimiter)"][index] = topics[min(possible_topic_indexs)]
+    if len(possible_topic_indexes) == 0:
+        law_data["Topics (~ delimiter)"][index] = 'Other'
+    else:
+        law_data["Topics (~ delimiter)"][index] = topics[min(possible_topic_indexs)]
 
 # Get Fiscal Note length make 3 buckets
 # print(law_data["Fiscal Note"])
