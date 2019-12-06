@@ -124,7 +124,7 @@ for bill_index, bill_row in law_data.iterrows():
     numDaysIntoSessionBillIsIntroduced = (bill_row["Session Introduction Date"] - bill_row["session_convened_date"]).days
     percentile = math.ceil(numDaysIntoSessionBillIsIntroduced / numDaysInPercentile)
     session_date_percentiles.append(percentile)
-    
+
 law_data.insert(0, "session_date_percentile", session_date_percentiles)
 
 ## 5. Remove intermediate columns that are no longer needed
@@ -133,7 +133,6 @@ law_data = law_data.drop(["session_adjourned_date", "session_convened_date",\
                           "Session Introduction Date"], axis=1)
 
 print(law_data)
-
 
 # Run Built-in Decision Tree Algorithm
 ############################################################
