@@ -76,7 +76,7 @@ for (index, length) in enumerate(fiscal_note_lengths):
 # Categorize session introduction into percentiles (4 percentiles)
 
 ## 1. Read in the Session Date CSV and Convert to a date format that we can work with
-session_dates_data = pd.read_csv("../idaho-law-machine-learn/session_dates_csv_template.csv")
+session_dates_data = pd.read_json('./IDLegPull_session_dates.json')
 
 session_dates_data["Date_convened"] = pd.to_datetime(session_dates_data["Date_convened"])
 session_dates_data["Date_adjourned"] = pd.to_datetime(session_dates_data["Date_adjourned"])
