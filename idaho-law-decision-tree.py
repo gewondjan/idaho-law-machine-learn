@@ -50,28 +50,22 @@ for (index, law_topics) in enumerate(law_data["Topics (~ delimiter)"]):
             if possible_topic == topic:
                 possible_topic_indexes.append(i)
                 break
-    if len(possible_topic_indexes) == 0:
-        law_data["Topics (~ delimiter)"][index] = 'Other'
-    else:
-        law_data["Topics (~ delimiter)"][index] = topics[min(possible_topic_indexes)]
+    topic = 'Other' if len(possible_topic_indexes) == 0 else topics[min(possible_topic_indexes)]
+    law_data.loc[index, "Topics (~ delimiter)"] = topic
 
 # Get Fiscal Note length make 3 buckets
 # print(law_data["Fiscal Note"])
-law_data.cost = law_data["Fiscal Note"]
 fiscal_note_lengths = law_data["Fiscal Note"].str.len()
-mean = statistics.mean(law_data["Fiscal Note"].str.len())
-stdev = statistics.stdev(law_data["Fiscal Note"].str.len())
+mean = statistics.mean(fiscal_note_lengths)
+stdev = statistics.stdev(fiscal_note_lengths)
 for (index, length) in enumerate(fiscal_note_lengths):
     if length < mean - stdev:
-        cost = "Low"
+        law_data.loc[index, "Fiscal Note"] = "Low"
     elif length < mean + stdev:
-        cost = "Medium"
+        law_data.loc[index, "Fiscal Note"] = "Medium"
     else:
-        cost = "High"
-    law_data.cost[index] = cost
-    law_data.drop("Fiscal Note", axis=1, inplace=True)
-
-#print(law_data.cost)
+        law_data.loc[index, "Fiscal Note"] = "High"
+law_data.rename(columns = {'Fiscal Note':'cost'}, inplace = True)
 
 # Categorize session introduction into percentiles (4 percentiles)
 
