@@ -72,38 +72,49 @@ law_data.rename(columns = {'Fiscal Note':'cost'}, inplace = True)
 ## 1. Read in the Session Date CSV and Convert to a date format that we can work with
 session_dates_data = pd.read_json('./IDLegPull_session_dates.json')
 
-session_dates_data["Date_convened"] = pd.to_datetime(session_dates_data["Date_convened"])
-session_dates_data["Date_adjourned"] = pd.to_datetime(session_dates_data["Date_adjourned"])
+session_dates_data["Session_Convened"] = pd.to_datetime(session_dates_data["Session_Convened"])
+session_dates_data["Session_Adjourned"] = pd.to_datetime(session_dates_data["Session_Adjourned"])
+
 law_data["Session Introduction Date"] = pd.to_datetime(law_data["Session Introduction Date"])
 
 ## 2. Trim down the Legislative Session Name Long to the format: Regular Session - 2019 (Type Session - Year)
-def getSessionNameOutOfLongSessionName(sessionName):
+def removeFirstWordInString(sessionName):
     sessionNameArray = sessionName.split()
-    # need to append a dummy value, so we can get the element on the very end of the array
-    sessionNameArray.append("DummyValue")
-    sessionNameArray = sessionNameArray[-5:-1]
+    sessionNameArray = sessionNameArray[1:]
     return " ".join(sessionNameArray)
 
-law_data["Legislative Session Name"] = \
-law_data["Legislative Session Name Long"].apply(lambda sessionName: getSessionNameOutOfLongSessionName(sessionName))
+law_data["Legislative_Session"] = \
+law_data["Legislative_Session"].apply(lambda sessionName: removeFirstWordInString(sessionName))
 
+sessionNameKeyToSessionDatesFile = []
+for bill_index, bill_row in law_data.iterrows():
+    sessionNameKeyToSessionDatesFile.append(str(bill_row["Legislative_Year"]) + " " +  bill_row["Legislative_Session"])
+
+law_data.insert(0, "Legislative_Session_Key", sessionNameKeyToSessionDatesFile)    
 
 ## 3. Add columns to the law_data that correspond to the session start date and end date that are associated with the bill.
 startDateArray = []
 endDateArray = []
-for bill_index, bill_row in law_data.iterrows():
+for bill_index, bill_row in law_data.iterrows(): 
     foundMatch = False
     for session_date_index, session_date_row in session_dates_data.iterrows():
-        if session_date_row["Session_name"] == bill_row["Legislative Session Name"]:
-            startDateArray.append(session_date_row["Date_convened"])
-            endDateArray.append(session_date_row["Date_adjourned"])
+        if session_date_row["Session_Name"] == bill_row["Legislative_Session_Key"]:
+            startDateArray.append(session_date_row["Session_Convened"])
+            endDateArray.append(session_date_row["Session_Adjourned"])
             foundMatch = True
+            break
     if not foundMatch:
+        # Change this to an exception being thrown with enough information to know whats happening.
         startDateArray.append("NO MATCH IN SESSION DATES CSV")
         endDateArray.append("NO MATCH IN SESSION DATES CSV")
 
 law_data.insert(0, "session_convened_date", startDateArray)
 law_data.insert(0, "session_adjourned_date", endDateArray)
+
+
+
+law_data["session_convened_date"] = pd.to_datetime(law_data["session_convened_date"])
+law_data["session_adjourned_date"] = pd.to_datetime(law_data["session_adjourned_date"])
 
 ## 4. Now it is as if the session start and end dates were included in the original CSV
 ## proceed to perform the calculation for percentile
@@ -120,7 +131,7 @@ law_data.insert(0, "session_date_percentile", session_date_percentiles)
 
 ## 5. Remove intermediate columns that are no longer needed
 law_data = law_data.drop(["session_adjourned_date", "session_convened_date",\
-                          "Legislative Session Name", "Legislative Session Name Long",\
+                          "Legislative_Session",\
                           "Session Introduction Date"], axis=1)
 
 print(law_data)
