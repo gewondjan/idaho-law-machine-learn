@@ -75,8 +75,8 @@ for (index, length) in enumerate(fiscal_note_lengths):
 ## 1. Read in the Session Date CSV and Convert to a date format that we can work with
 session_dates_data = pd.read_csv("../idaho-law-machine-learn/session_dates_csv_template.csv")
 
-session_dates_data["Date_convened"] = pd.to_datetime(session_dates_data["Date_convened"])
-session_dates_data["Date_adjourned"] = pd.to_datetime(session_dates_data["Date_adjourned"])
+session_dates_data["Session_Convened"] = pd.to_datetime(session_dates_data["Session_Convened"])
+session_dates_data["Session_Adjourned"] = pd.to_datetime(session_dates_data["Session_Adjourned"])
 law_data["Session Introduction Date"] = pd.to_datetime(law_data["Session Introduction Date"])
 
 ## 2. Trim down the Legislative Session Name Long to the format: Regular Session - 2019 (Type Session - Year)
@@ -97,9 +97,9 @@ endDateArray = []
 for bill_index, bill_row in law_data.iterrows():
     foundMatch = False
     for session_date_index, session_date_row in session_dates_data.iterrows():
-        if session_date_row["Session_name"] == bill_row["Legislative Session Name"]:
-            startDateArray.append(session_date_row["Date_convened"])
-            endDateArray.append(session_date_row["Date_adjourned"])
+        if session_date_row["Session_Name"] == bill_row["Legislative Session Name"]:
+            startDateArray.append(session_date_row["Session_Convened"])
+            endDateArray.append(session_date_row["Session_Adjourned"])
             foundMatch = True
     if not foundMatch:
         startDateArray.append("NO MATCH IN SESSION DATES CSV")
