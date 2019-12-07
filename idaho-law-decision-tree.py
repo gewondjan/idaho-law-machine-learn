@@ -82,35 +82,38 @@ topics_data.Keywords = topics_data.Keywords.str.upper()
 topics = topics_data.Topics
 keywords = topics_data.Keywords
 
-
-new_topics_column = []
-
+hot_topic_column = []
 # Loop through each bill
 for (index, law_topics_row) in enumerate(law_data["Topics"]):
+    hot_topic = False
     bill_topics = [x.strip() for x in law_topics_row.split('~')]
-
-    priority_topic_indexes = []
 
     # Loop through each topic of that bill
     for bill_topic in bill_topics:
 
-        match = False
         # Loop through the list of Priority topics
         for (i, (priority_topic, topic_keywords)) in enumerate(zip(topics, keywords)):
             # Check to see if the bill topic matches the priority topic or one of the keywords.
             individual_keywords = [x.strip() for x in topic_keywords.split('~')]
             if bill_topic == priority_topic:
-                match = True
+                hot_topic = True
+                break
             else:
                 for keyword in individual_keywords:
                     if bill_topic == keyword:
-                        match = True
+                        hot_topic = True
                         break
-            if match:
-                priority_topic_indexes.append(i)
+            if hot_topic:
                 break
-    new_topics_column.append('Other' if len(priority_topic_indexes) == 0 else topics[min(priority_topic_indexes)])
-law_data.insert(0, "Main_Topic", new_topics_column)
+        if hot_topic:
+            break
+    hot_topic_column.append(1 if hot_topic else 0)
+law_data.insert(0, "Hot_Topic", hot_topic_column)
+htt = 0
+htf = 0
+for ht in law_data.Hot_Topic:
+    if ht == 1: htt += 1
+    else: htf += 1
 
 
 # Get Fiscal Note length make 3 buckets
