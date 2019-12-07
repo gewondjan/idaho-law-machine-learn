@@ -44,14 +44,28 @@ for bill_index, bill_row in law_data.iterrows():
         pd.to_datetime(bill_row["Introduction_Date"])
     except:
         errorRows.append(bill_index)
-
+        
+    # Drop rows that have a committee name that doesn't end with "committee"
+    committeeName = bill_row["Starting_Committee"]
+    committeeWordsArray = committeeName.upper().split()
+    if committeeWordsArray[-1] != "COMMITTEE":
+        errorRows.append(bill_index)
+        
 # If there is more than one error for each row, remove the duplicates
 errorRows = set(errorRows)
+# Drop the Error Rows
 law_data = law_data.drop(errorRows, axis=0)
 
-# Drop rows that don't have any topics
+# Remove commas from committee names
+
+def removeCommas(committeeName):
+    committeeNameArray = committeeName.split(',')
+    return "".join(committeeNameArray)
+law_data["Starting_Committee"] = law_data["Starting_Committee"].apply(lambda committee: removeCommas(committee))
 
 
+#print(law_data["Starting_Committee"].unique())
+#print(law_data["Starting_Committee"].value_counts())
 
 # Transform the first column to 'H' or 'S'
 pd.set_option('display.max_columns', None)
@@ -191,7 +205,7 @@ session_date_percentiles = []
 for bill_index, bill_row in law_data.iterrows():
     numDaysInSession = (bill_row["session_adjourned_date"] - bill_row["session_convened_date"]).days
     numDaysInPercentile = numDaysInSession // 4 # Since we always round down, this will cause some error in our data, but we're considering it insignificant for now.
-    numDaysIntoSessionBillIsIntroduced = (bill_row["Session Introduction Date"] - bill_row["session_convened_date"]).days
+    numDaysIntoSessionBillIsIntroduced = (bill_row["Introduction_Date"] - bill_row["session_convened_date"]).days
     percentile = math.ceil(numDaysIntoSessionBillIsIntroduced / numDaysInPercentile)
     session_date_percentiles.append(percentile)
 
