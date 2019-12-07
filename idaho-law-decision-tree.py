@@ -14,22 +14,69 @@ import math
 import statistics
 from sklearn import preprocessing as pp
 
-law_data = pd.read_csv("template_csv_for_idaho_bills.csv")# This encoding might be necessary: encoding="ISO-8859-1")
+law_data = pd.read_csv("legislation.csv")# This encoding might be necessary: encoding="ISO-8859-1")
+
+# Drop all Error Rows
+errorRows = []
+atLeastOne = False
+for bill_index, bill_row in law_data.iterrows():
+
+        # Drop rows that don't have a Legislative Session?
+    if not isinstance(bill_row["Legislative_Session"], str) or isinstance(bill_row["Legislative_Session"], float) or bill_row["Legislative_Session"] == ""or bill_row["Legislative_Session"] == None:
+        print("HERE IS THE ERROR: {}".format(bill_row["Legislative_Session"]))
+        errorRows.append(bill_index)
+        atLeastOne = True
+
+    
+    # Drop Error Rows that have a non year in Legislative Year    
+    try:
+        int(bill_row["Legislative_Year"])
+    except:
+        errorRows.append(bill_index)
+    
+    # Drop rows that don't have any topics
+    if (bill_row["Topics"] == "" or isinstance(bill_row["Topics"], float)):
+        errorRows.append(bill_index)
+        
+        
+    # Drop rows that have errors instead of dates in introduction dates
+    try:
+        pd.to_datetime(bill_row["Introduction_Date"])
+    except:
+        errorRows.append(bill_index)
+
+        
+
+    
+
+if (atLeastOne):
+    print("THERE IS AT LEAST ONE")
+else:
+    print("NOT ANY AT ALL")
+
+# If there is more than one error for each row, remove the duplicates
+errorRows = set(errorRows)
+law_data = law_data.drop(errorRows, axis=0)
+
+# Drop rows that don't have any topics
+
+
 
 # Transform the first column to 'H' or 'S'
 pd.set_option('display.max_columns', None)
 list(law_data.columns)
-law_data['Bill Code Starts with H or S'] = law_data['Bill Code (starts with H or S)'].str[0]
-law_data.drop('Bill Code (starts with H or S)', axis=1, inplace=True)
+law_data['Started_House_Or_Senate'] = law_data['Legislation_Code'].str[0]
+law_data.drop('Legislation_Code', axis=1, inplace=True)
 
 # Label Encoding the Starting Committee (1 of 18)
 
 le = pp.LabelEncoder()
-law_data['Starting Committee (1 of 18)'] = le.fit_transform(law_data['Starting Committee (1 of 18)'])
+law_data['Starting_Committee'] = le.fit_transform(law_data['Starting_Committee'])
+
 
 # Label Encoded Sponsor Contact Party (R, D, or not legislator)
-
-law_data['Sponsor Contact Party (R, D, or not legislator)'] = le.fit_transform(law_data['Sponsor Contact Party (R, D, or not legislator)'])
+# TODO: ADD THE SPONSOR CONTACT PARTY
+#law_data['Sponsor Contact Party (R, D, or not legislator)'] = le.fit_transform(law_data['Sponsor Contact Party (R, D, or not legislator)'])
 
 # Reduce the topics column to the set of highest priority topics
 
@@ -37,12 +84,19 @@ law_data['Sponsor Contact Party (R, D, or not legislator)'] = le.fit_transform(l
 topics_data = pd.read_csv("topics.csv")
 
 # Make it uppercase to avoid case problems
-law_data["Topics (~ delimiter)"] = law_data["Topics (~ delimiter)"].str.upper()
+law_data["Topics"] = law_data["Topics"].str.upper()
 topics_data.Topics = topics_data.Topics.str.upper()
 
 topics = topics_data.Topics
 
-for (index, law_topics) in enumerate(law_data["Topics (~ delimiter)"]):
+countTWO = 0
+for bill_index, bill_row in law_data.iterrows():
+    if not isinstance(bill_row["Legislative_Session"], str):
+        countTWO = countTWO + 1
+
+print(countTWO)
+
+for (index, law_topics) in enumerate(law_data["Topics"]):
     possible_topics = law_topics.split('~')
     possible_topic_indexes = []
     for possible_topic in possible_topics:
@@ -51,21 +105,23 @@ for (index, law_topics) in enumerate(law_data["Topics (~ delimiter)"]):
                 possible_topic_indexes.append(i)
                 break
     topic = 'Other' if len(possible_topic_indexes) == 0 else topics[min(possible_topic_indexes)]
-    law_data.loc[index, "Topics (~ delimiter)"] = topic
+    law_data.loc[index, "Topics"] = topic
+
+
 
 # Get Fiscal Note length make 3 buckets
 # print(law_data["Fiscal Note"])
-fiscal_note_lengths = law_data["Fiscal Note"].str.len()
+fiscal_note_lengths = law_data["Fiscal_Note"].str.len()
 mean = statistics.mean(fiscal_note_lengths)
 stdev = statistics.stdev(fiscal_note_lengths)
 for (index, length) in enumerate(fiscal_note_lengths):
     if length < mean - stdev:
-        law_data.loc[index, "Fiscal Note"] = "Low"
+        law_data.loc[index, "Fiscal_Note"] = "Low"
     elif length < mean + stdev:
-        law_data.loc[index, "Fiscal Note"] = "Medium"
+        law_data.loc[index, "Fiscal_Note"] = "Medium"
     else:
-        law_data.loc[index, "Fiscal Note"] = "High"
-law_data.rename(columns = {'Fiscal Note':'cost'}, inplace = True)
+        law_data.loc[index, "Fiscal_Note"] = "High"
+law_data.rename(columns = {'Fiscal_Note':'cost'}, inplace = True)
 
 # Categorize session introduction into percentiles (4 percentiles)
 
@@ -75,14 +131,23 @@ session_dates_data = pd.read_json('./IDLegPull_session_dates.json')
 session_dates_data["Session_Convened"] = pd.to_datetime(session_dates_data["Session_Convened"])
 session_dates_data["Session_Adjourned"] = pd.to_datetime(session_dates_data["Session_Adjourned"])
 
-law_data["Session Introduction Date"] = pd.to_datetime(law_data["Session Introduction Date"])
+law_data["Introduction_Date"] = pd.to_datetime(law_data["Introduction_Date"])
 
 ## 2. Trim down the Legislative Session Name Long to the format: Regular Session - 2019 (Type Session - Year)
 def removeFirstWordInString(sessionName):
+    if not isinstance(sessionName, str):
+        print(sessionName)
+    assert(isinstance(sessionName, str))
     sessionNameArray = sessionName.split()
     sessionNameArray = sessionNameArray[1:]
     return " ".join(sessionNameArray)
 
+countTWO = 0
+for bill_index, bill_row in law_data.iterrows():
+    if not isinstance(bill_row["Legislative_Session"], str):
+        countTWO = countTWO + 1
+
+print(countTWO)
 law_data["Legislative_Session"] = \
 law_data["Legislative_Session"].apply(lambda sessionName: removeFirstWordInString(sessionName))
 
@@ -130,7 +195,7 @@ law_data.insert(0, "session_date_percentile", session_date_percentiles)
 ## 5. Remove intermediate columns that are no longer needed
 law_data = law_data.drop(["session_adjourned_date", "session_convened_date",\
                           "Legislative_Session",\
-                          "Session Introduction Date"], axis=1)
+                          "Introduction_Date"], axis=1)
 
 print(law_data)
 
