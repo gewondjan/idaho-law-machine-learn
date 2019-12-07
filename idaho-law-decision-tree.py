@@ -86,8 +86,10 @@ topics_data = pd.read_csv("topics.csv")
 # Make it uppercase to avoid case problems
 law_data["Topics"] = law_data["Topics"].str.upper()
 topics_data.Topics = topics_data.Topics.str.upper()
+topics_data.Keywords = topics_data.Keywords.str.upper()
 
 topics = topics_data.Topics
+keywords = topics_data.Keywords
 
 countTWO = 0
 for bill_index, bill_row in law_data.iterrows():
@@ -96,22 +98,36 @@ for bill_index, bill_row in law_data.iterrows():
 
 print(countTWO)
 
-for (index, law_topics) in enumerate(law_data["Topics"]):
-    possible_topics = law_topics.split('~')
-    possible_topic_indexes = []
-    for possible_topic in possible_topics:
-        for (i, topic) in enumerate(topics):
-            if possible_topic == topic:
-                possible_topic_indexes.append(i)
+
+# Loop through each bill
+for (index, law_topics_row) in enumerate(law_data["Topics (~ delimiter)"]):
+    bill_topics = [x.strip() for x in law_topics_row.split('~')]
+
+    priority_topic_indexes = []
+
+    # Loop through each topic of that bill
+    for bill_topic in bill_topics:
+
+        match = False
+        # Loop through the list of Priority topics
+        for (i, (priority_topic, topic_keywords)) in enumerate(zip(topics, keywords)):
+            # Check to see if the bill topic matches the priority topic or one of the keywords.
+            individual_keywords = [x.strip() for x in topic_keywords.split('~')]
+            if bill_topic == priority_topic:
+                match = True
+            else:
+                for keyword in individual_keywords:
+                    if bill_topic == keyword:
+                        match = True
+                        break
+            if match:
+                priority_topic_indexes.append(i)
                 break
-    topic = 'Other' if len(possible_topic_indexes) == 0 else topics[min(possible_topic_indexes)]
-    law_data.loc[index, "Topics"] = topic
-
-
+    topic = 'Other' if len(priority_topic_indexes) == 0 else topics[min(priority_topic_indexes)]
+    law_data.loc[index, "Topics (~ delimiter)"] = topic
 
 # Get Fiscal Note length make 3 buckets
-# print(law_data["Fiscal Note"])
-fiscal_note_lengths = law_data["Fiscal_Note"].str.len()
+fiscal_note_lengths = law_data["Fiscal Note"].str.len()
 mean = statistics.mean(fiscal_note_lengths)
 stdev = statistics.stdev(fiscal_note_lengths)
 for (index, length) in enumerate(fiscal_note_lengths):
@@ -155,12 +171,12 @@ sessionNameKeyToSessionDatesFile = []
 for bill_index, bill_row in law_data.iterrows():
     sessionNameKeyToSessionDatesFile.append(str(bill_row["Legislative_Year"]) + " " +  bill_row["Legislative_Session"])
 
-law_data.insert(0, "Legislative_Session_Key", sessionNameKeyToSessionDatesFile)    
+law_data.insert(0, "Legislative_Session_Key", sessionNameKeyToSessionDatesFile)
 
 ## 3. Add columns to the law_data that correspond to the session start date and end date that are associated with the bill.
 startDateArray = []
 endDateArray = []
-for bill_index, bill_row in law_data.iterrows(): 
+for bill_index, bill_row in law_data.iterrows():
     foundMatch = False
     for session_date_index, session_date_row in session_dates_data.iterrows():
         if session_date_row["Session_Name"] == bill_row["Legislative_Session_Key"]:
@@ -197,6 +213,9 @@ law_data = law_data.drop(["session_adjourned_date", "session_convened_date",\
                           "Legislative_Session",\
                           "Introduction_Date"], axis=1)
 
+
+# print(law_data)
+# random.shuffle(law_data)
 print(law_data)
 
 # Run Built-in Decision Tree Algorithm
