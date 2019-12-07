@@ -107,12 +107,12 @@ sessionNameKeyToSessionDatesFile = []
 for bill_index, bill_row in law_data.iterrows():
     sessionNameKeyToSessionDatesFile.append(str(bill_row["Legislative_Year"]) + " " +  bill_row["Legislative_Session"])
 
-law_data.insert(0, "Legislative_Session_Key", sessionNameKeyToSessionDatesFile)    
+law_data.insert(0, "Legislative_Session_Key", sessionNameKeyToSessionDatesFile)
 
 ## 3. Add columns to the law_data that correspond to the session start date and end date that are associated with the bill.
 startDateArray = []
 endDateArray = []
-for bill_index, bill_row in law_data.iterrows(): 
+for bill_index, bill_row in law_data.iterrows():
     foundMatch = False
     for session_date_index, session_date_row in session_dates_data.iterrows():
         if session_date_row["Session_Name"] == bill_row["Legislative_Session_Key"]:
@@ -148,9 +148,12 @@ law_data.insert(0, "session_date_percentile", session_date_percentiles)
 
 ## 5. Remove intermediate columns that are no longer needed
 law_data = law_data.drop(["session_adjourned_date", "session_convened_date",\
-                          "Legislative_Session",\
-                          "Session Introduction Date"], axis=1)
+                        "Legislative_Session",\
+                        "Session Introduction Date"], axis=1)
 
+
+# print(law_data)
+# random.shuffle(law_data)
 print(law_data)
 
 # Run Built-in Decision Tree Algorithm
