@@ -39,22 +39,39 @@ topics_data = pd.read_csv("topics.csv")
 # Make it uppercase to avoid case problems
 law_data["Topics (~ delimiter)"] = law_data["Topics (~ delimiter)"].str.upper()
 topics_data.Topics = topics_data.Topics.str.upper()
+topics_data.Keywords = topics_data.Keywords.str.upper()
 
 topics = topics_data.Topics
+keywords = topics_data.Keywords
 
-for (index, law_topics) in enumerate(law_data["Topics (~ delimiter)"]):
-    possible_topics = law_topics.split('~')
-    possible_topic_indexes = []
-    for possible_topic in possible_topics:
-        for (i, topic) in enumerate(topics):
-            if possible_topic == topic:
-                possible_topic_indexes.append(i)
+# Loop through each bill
+for (index, law_topics_row) in enumerate(law_data["Topics (~ delimiter)"]):
+    bill_topics = [x.strip() for x in law_topics_row.split('~')]
+
+    priority_topic_indexes = []
+
+    # Loop through each topic of that bill
+    for bill_topic in bill_topics:
+
+        match = False
+        # Loop through the list of Priority topics
+        for (i, (priority_topic, topic_keywords)) in enumerate(zip(topics, keywords)):
+            # Check to see if the bill topic matches the priority topic or one of the keywords.
+            individual_keywords = [x.strip() for x in topic_keywords.split('~')]
+            if bill_topic == priority_topic:
+                match = True
+            else:
+                for keyword in individual_keywords:
+                    if bill_topic == keyword:
+                        match = True
+                        break
+            if match:
+                priority_topic_indexes.append(i)
                 break
-    topic = 'Other' if len(possible_topic_indexes) == 0 else topics[min(possible_topic_indexes)]
+    topic = 'Other' if len(priority_topic_indexes) == 0 else topics[min(priority_topic_indexes)]
     law_data.loc[index, "Topics (~ delimiter)"] = topic
 
 # Get Fiscal Note length make 3 buckets
-# print(law_data["Fiscal Note"])
 fiscal_note_lengths = law_data["Fiscal Note"].str.len()
 mean = statistics.mean(fiscal_note_lengths)
 stdev = statistics.stdev(fiscal_note_lengths)
