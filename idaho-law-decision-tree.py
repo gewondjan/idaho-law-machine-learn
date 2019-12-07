@@ -45,15 +45,6 @@ for bill_index, bill_row in law_data.iterrows():
     except:
         errorRows.append(bill_index)
 
-        
-
-    
-
-if (atLeastOne):
-    print("THERE IS AT LEAST ONE")
-else:
-    print("NOT ANY AT ALL")
-
 # If there is more than one error for each row, remove the duplicates
 errorRows = set(errorRows)
 law_data = law_data.drop(errorRows, axis=0)
@@ -91,16 +82,9 @@ topics_data.Keywords = topics_data.Keywords.str.upper()
 topics = topics_data.Topics
 keywords = topics_data.Keywords
 
-countTWO = 0
-for bill_index, bill_row in law_data.iterrows():
-    if not isinstance(bill_row["Legislative_Session"], str):
-        countTWO = countTWO + 1
-
-print(countTWO)
-
 
 # Loop through each bill
-for (index, law_topics_row) in enumerate(law_data["Topics (~ delimiter)"]):
+for (index, law_topics_row) in enumerate(law_data["Topics"]):
     bill_topics = [x.strip() for x in law_topics_row.split('~')]
 
     priority_topic_indexes = []
@@ -124,10 +108,24 @@ for (index, law_topics_row) in enumerate(law_data["Topics (~ delimiter)"]):
                 priority_topic_indexes.append(i)
                 break
     topic = 'Other' if len(priority_topic_indexes) == 0 else topics[min(priority_topic_indexes)]
-    law_data.loc[index, "Topics (~ delimiter)"] = topic
+    law_data.loc[index, "Topics"] = topic
+
+countTWO = 0
+possibleProblemIndexes = []
+for bill_index, bill_row in law_data.iterrows():
+    if not isinstance(bill_row["Legislative_Session"], str):
+        print(bill_row)
+        break
+        possibleProblemIndexes.append(bill_index)
+        countTWO = countTWO + 1
+
+print(countTWO)
+print(possibleProblemIndexes)
+print(law_data.iloc[[possibleProblemIndexes[0]]])
+
 
 # Get Fiscal Note length make 3 buckets
-fiscal_note_lengths = law_data["Fiscal Note"].str.len()
+fiscal_note_lengths = law_data["Fiscal_Note"].str.len()
 mean = statistics.mean(fiscal_note_lengths)
 stdev = statistics.stdev(fiscal_note_lengths)
 for (index, length) in enumerate(fiscal_note_lengths):
