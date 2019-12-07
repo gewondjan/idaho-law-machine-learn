@@ -27,18 +27,18 @@ for bill_index, bill_row in law_data.iterrows():
         errorRows.append(bill_index)
         atLeastOne = True
 
-    
-    # Drop Error Rows that have a non year in Legislative Year    
+
+    # Drop Error Rows that have a non year in Legislative Year
     try:
         int(bill_row["Legislative_Year"])
     except:
         errorRows.append(bill_index)
-    
+
     # Drop rows that don't have any topics
     if (bill_row["Topics"] == "" or isinstance(bill_row["Topics"], float)):
         errorRows.append(bill_index)
-        
-        
+
+
     # Drop rows that have errors instead of dates in introduction dates
     try:
         pd.to_datetime(bill_row["Introduction_Date"])
@@ -83,6 +83,8 @@ topics = topics_data.Topics
 keywords = topics_data.Keywords
 
 
+new_topics_column = []
+
 # Loop through each bill
 for (index, law_topics_row) in enumerate(law_data["Topics"]):
     bill_topics = [x.strip() for x in law_topics_row.split('~')]
@@ -107,35 +109,24 @@ for (index, law_topics_row) in enumerate(law_data["Topics"]):
             if match:
                 priority_topic_indexes.append(i)
                 break
-    topic = 'Other' if len(priority_topic_indexes) == 0 else topics[min(priority_topic_indexes)]
-    law_data.loc[index, "Topics"] = topic
-
-countTWO = 0
-possibleProblemIndexes = []
-for bill_index, bill_row in law_data.iterrows():
-    if not isinstance(bill_row["Legislative_Session"], str):
-        print(bill_row)
-        break
-        possibleProblemIndexes.append(bill_index)
-        countTWO = countTWO + 1
-
-print(countTWO)
-print(possibleProblemIndexes)
-print(law_data.iloc[[possibleProblemIndexes[0]]])
+    new_topics_column.append('Other' if len(priority_topic_indexes) == 0 else topics[min(priority_topic_indexes)])
+law_data.insert(0, "Main_Topic", new_topics_column)
 
 
 # Get Fiscal Note length make 3 buckets
 fiscal_note_lengths = law_data["Fiscal_Note"].str.len()
 mean = statistics.mean(fiscal_note_lengths)
 stdev = statistics.stdev(fiscal_note_lengths)
+cost_column = []
 for (index, length) in enumerate(fiscal_note_lengths):
     if length < mean - stdev:
-        law_data.loc[index, "Fiscal_Note"] = "Low"
+        cost_column.append('Low')
     elif length < mean + stdev:
-        law_data.loc[index, "Fiscal_Note"] = "Medium"
+        cost_column.append('Medium')
     else:
-        law_data.loc[index, "Fiscal_Note"] = "High"
-law_data.rename(columns = {'Fiscal_Note':'cost'}, inplace = True)
+        cost_column.append('High')
+law_data.insert(0, 'cost', cost_column)
+# law_data.rename(columns = {'Fiscal_Note':'cost'}, inplace = True)
 
 # Categorize session introduction into percentiles (4 percentiles)
 
