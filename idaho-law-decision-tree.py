@@ -18,15 +18,11 @@ law_data = pd.read_csv("legislation.csv")# This encoding might be necessary: enc
 
 # Drop all Error Rows
 errorRows = []
-atLeastOne = False
 for bill_index, bill_row in law_data.iterrows():
 
-        # Drop rows that don't have a Legislative Session?
-    if not isinstance(bill_row["Legislative_Session"], str) or isinstance(bill_row["Legislative_Session"], float) or bill_row["Legislative_Session"] == ""or bill_row["Legislative_Session"] == None:
-        print("HERE IS THE ERROR: {}".format(bill_row["Legislative_Session"]))
+    # Drop rows that have an improperly formed Legislative Session?
+    if isinstance(bill_row["Legislative_Session"], float) or bill_row["Legislative_Session"] == "" or bill_row["Legislative_Session"] == "ERROR: AttributeError":
         errorRows.append(bill_index)
-        atLeastOne = True
-
 
     # Drop Error Rows that have a non year in Legislative Year
     try:
@@ -50,6 +46,8 @@ for bill_index, bill_row in law_data.iterrows():
     committeeWordsArray = committeeName.upper().split()
     if committeeWordsArray[-1] != "COMMITTEE":
         errorRows.append(bill_index)
+        
+    # Drop rows that have an error message in the Legislative session
         
 # If there is more than one error for each row, remove the duplicates
 errorRows = set(errorRows)
@@ -164,12 +162,6 @@ def removeFirstWordInString(sessionName):
     sessionNameArray = sessionNameArray[1:]
     return " ".join(sessionNameArray)
 
-countTWO = 0
-for bill_index, bill_row in law_data.iterrows():
-    if not isinstance(bill_row["Legislative_Session"], str):
-        countTWO = countTWO + 1
-
-print(countTWO)
 law_data["Legislative_Session"] = \
 law_data["Legislative_Session"].apply(lambda sessionName: removeFirstWordInString(sessionName))
 
@@ -182,6 +174,7 @@ law_data.insert(0, "Legislative_Session_Key", sessionNameKeyToSessionDatesFile)
 ## 3. Add columns to the law_data that correspond to the session start date and end date that are associated with the bill.
 startDateArray = []
 endDateArray = []
+rowsWithoutValidKey = []
 for bill_index, bill_row in law_data.iterrows():
     foundMatch = False
     for session_date_index, session_date_row in session_dates_data.iterrows():
@@ -191,22 +184,35 @@ for bill_index, bill_row in law_data.iterrows():
             foundMatch = True
             break
     if not foundMatch:
+        
         # Change this to an exception being thrown with enough information to know whats happening.
+        rowsWithoutValidKey.append(bill_index)
+        print(bill_row["Legislative_Session_Key"])
         startDateArray.append("NO MATCH IN SESSION DATES CSV")
         endDateArray.append("NO MATCH IN SESSION DATES CSV")
 
 law_data.insert(0, "session_convened_date", startDateArray)
 law_data.insert(0, "session_adjourned_date", endDateArray)
 
-#law_data["session_convened_date"] = pd.to_datetime(law_data["session_convened_date"])
-#law_data["session_adjourned_date"] = pd.to_datetime(law_data["session_adjourned_date"])
+law_data = law_data.drop(rowsWithoutValidKey, axis=0)
+
 
 ## 4. Now it is as if the session start and end dates were included in the original CSV
 ## proceed to perform the calculation for percentile
 
 session_date_percentiles = []
 for bill_index, bill_row in law_data.iterrows():
-    numDaysInSession = (bill_row["session_adjourned_date"] - bill_row["session_convened_date"]).days
+    if bill_row["Legislative_Session"] == "Extraordinary Session":
+        session_date_percentiles.append(0)
+        print("{} - start: {} - end: {}".format(bill_row["Legislative_Session"], bill_row["session_convened_date"], bill_row["session_adjourned_date"]))
+        continue
+    numDaysInSession = None
+    try:
+        numDaysInSession = (bill_row["session_adjourned_date"] - bill_row["session_convened_date"]).days
+    except:
+        print(bill_row["session_adjourned_date"])
+        print(bill_row["session_convened_date"])
+        raise Exception("PROBLEM")
     numDaysInPercentile = numDaysInSession // 4 # Since we always round down, this will cause some error in our data, but we're considering it insignificant for now.
     numDaysIntoSessionBillIsIntroduced = (bill_row["Introduction_Date"] - bill_row["session_convened_date"]).days
     percentile = math.ceil(numDaysIntoSessionBillIsIntroduced / numDaysInPercentile)
