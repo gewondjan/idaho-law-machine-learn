@@ -128,10 +128,8 @@ for bill_index, bill_row in law_data.iterrows():
 law_data.insert(0, "session_convened_date", startDateArray)
 law_data.insert(0, "session_adjourned_date", endDateArray)
 
-
-
-law_data["session_convened_date"] = pd.to_datetime(law_data["session_convened_date"])
-law_data["session_adjourned_date"] = pd.to_datetime(law_data["session_adjourned_date"])
+#law_data["session_convened_date"] = pd.to_datetime(law_data["session_convened_date"])
+#law_data["session_adjourned_date"] = pd.to_datetime(law_data["session_adjourned_date"])
 
 ## 4. Now it is as if the session start and end dates were included in the original CSV
 ## proceed to perform the calculation for percentile
