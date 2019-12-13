@@ -144,20 +144,18 @@ for ht in law_data.Hot_Topic:
 
 
 # Get Fiscal Note length make 3 buckets
-fiscal_note_lengths = law_data["Fiscal_Note"].str.len()
-stdev = statistics.stdev(fiscal_note_lengths)
-mean = statistics.mean(fiscal_note_lengths)
-cost_column = []
-for (index, length) in enumerate(fiscal_note_lengths):
-    if length < mean - stdev:
-        cost_column.append('Low')
-    elif length < mean + stdev:
-        cost_column.append('Medium')
+fiscal_notes = law_data["Fiscal_Note"].str.upper()
+no_cost_column = []
+for (index, note) in enumerate(fiscal_notes):
+    if ('NONE' in note or\
+        'NO IMPACT ON GENERAL FUND' in note or\
+        'NO FISCAL IMPACT' in note or\
+        'NO ANTICIPATED IMPACT' in note
+        ):
+        no_cost_column.append(True)
     else:
-        cost_column.append('High')
-law_data.insert(0, 'cost', cost_column)
-
-print(law_data.cost.unique())
+        no_cost_column.append(False)
+law_data.insert(0, 'No_Cost', no_cost_column)
 
 # # Get Summary length make 3 buckets
 summary_lengths = law_data["Summary"].str.len()
