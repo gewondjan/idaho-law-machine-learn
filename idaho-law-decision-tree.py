@@ -58,15 +58,13 @@ errorRows = set(errorRows)
 # Drop the Error Rows
 law_data = law_data.drop(errorRows, axis=0)
 
-#Add target value to law_data
-from binarytree import tree, bst, heap
-
+Add target value to law_data
 made_law = []
-for bill_index, bill_row in law_data.iterrows():
-    for target_index, target_row in bill_target_values.iterrows():
-        if bill_row.Legislation_Code == target_row.Bill_Code:
-            made_law.append(target_row["Adopted_or_Law"])
-            break
+#for bill_index, bill_row in law_data.iterrows():
+#    for target_index, target_row in bill_target_values.iterrows():
+#        if bill_row.Legislation_Code == target_row.Bill_Code:
+#            made_law.append(target_row["Adopted_or_Law"])
+#            break
 
 law_data.insert(0, "Made_Law", made_law)
 
