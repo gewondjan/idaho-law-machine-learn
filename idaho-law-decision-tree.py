@@ -234,9 +234,11 @@ for bill_index, bill_row in law_data.iterrows():
 law_data.insert(0, "session_date_percentile", session_date_percentiles)
 
 ## 5. Remove intermediate columns that are no longer needed
-law_data = law_data.drop(["session_adjourned_date", "session_convened_date",\
-                          "Legislative_Session",\
-                          "Introduction_Date"], axis=1)
+law_data = law_data.drop(["session_adjourned_date", "session_convened_date", "Legislature", "Fiscal_Note",\
+                          "Statement_of_Purpose", "Fiscal_Note_Length", "Legislation_Name_Long", "Summary",\
+                          "Legislative_Session", "Bill_Sponsors", "Topics", "Legislation_Name_Medium",\
+                          "Legislative_Session_Name_Long", "Legislative_Session_Key", "Legislative_Year",\
+                          "Introduction_Date", "Legislation_Name_Short", "Legislation_Code_Plus", "RS_Number"], axis=1)
 
 
 # print(law_data)
@@ -245,3 +247,6 @@ print(law_data)
 
 # Run Built-in Decision Tree Algorithm
 ############################################################
+
+
+
