@@ -255,6 +255,7 @@ law_data = law_data.drop(["session_adjourned_date", "session_convened_date", "Le
                           "Legislative_Session_Name_Long", "Legislative_Session_Key", "Legislative_Year",\
                           "Introduction_Date", "Legislation_Name_Short", "Legislation_Code_Plus", "RS_Number"], axis=1)
 
+law_data.to_csv(path_or_buf="prepared_data.csv")
 
 # print(law_data)
 # random.shuffle(law_data)
