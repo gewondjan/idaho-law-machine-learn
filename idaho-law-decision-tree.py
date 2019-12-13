@@ -141,7 +141,20 @@ for (index, length) in enumerate(fiscal_note_lengths):
     else:
         cost_column.append('High')
 law_data.insert(0, 'cost', cost_column)
-# law_data.rename(columns = {'Fiscal_Note':'cost'}, inplace = True)
+
+# Get Summary length make 3 buckets
+summary_lengths = law_data["Summary"].str.len()
+mean = statistics.mean(summary_lengths)
+stdev = statistics.stdev(summary_lengths)
+summary_length_column = []
+for (index, length) in enumerate(fiscal_note_lengths):
+    if length < mean - stdev:
+        summary_length_column.append('Low')
+    elif length < mean + stdev:
+        summary_length_column.append('Medium')
+    else:
+        summary_length_column.append('High')
+law_data.insert(0, 'Summary_Length', summary_length_column)
 
 # Categorize session introduction into percentiles (4 percentiles)
 
