@@ -17,8 +17,6 @@ from sklearn import preprocessing as pp
 
 bill_target_values = pd.read_json("target_library.json")
 bill_target_values.drop(bill_target_values.columns.difference(["Adopted_or_Law", "Bill_Code"]), 1, inplace=True)
-print(bill_target_values) 
-
 
 law_data = pd.read_csv("legislation.csv")# This encoding might be necessary: encoding="ISO-8859-1")
 
@@ -46,31 +44,33 @@ for bill_index, bill_row in law_data.iterrows():
         pd.to_datetime(bill_row["Introduction_Date"])
     except:
         errorRows.append(bill_index)
-        
+
     # Drop rows that have a committee name that doesn't end with "committee"
     committeeName = bill_row["Starting_Committee"]
     committeeWordsArray = committeeName.upper().split()
     if committeeWordsArray[-1] != "COMMITTEE":
         errorRows.append(bill_index)
-        
+
     # Drop rows that have an error message in the Legislative session
-        
+
 # If there is more than one error for each row, remove the duplicates
 errorRows = set(errorRows)
 # Drop the Error Rows
 law_data = law_data.drop(errorRows, axis=0)
 
 #Add target value to law_data
-#for bill_index, bill_row in law_data.iterrows():
-#    for target_index, target_row in bill_target_values.iterrows():
-#        if target_row["Bill_Code"] == bill_row[""]
-#
-#law_data["made_law"] = 
+from binarytree import tree, bst, heap
 
+made_law = []
+for bill_index, bill_row in law_data.iterrows():
+    for target_index, target_row in bill_target_values.iterrows():
+        if bill_row.Legislation_Code == target_row.Bill_Code:
+            made_law.append(target_row["Adopted_or_Law"])
+            break
 
+law_data.insert(0, "Made_Law", made_law)
 
 # Remove commas from committee names
-
 def removeCommas(committeeName):
     committeeNameArray = committeeName.split(',')
     return "".join(committeeNameArray)
@@ -212,7 +212,7 @@ for bill_index, bill_row in law_data.iterrows():
             foundMatch = True
             break
     if not foundMatch:
-        
+
         # Change this to an exception being thrown with enough information to know whats happening.
         rowsWithoutValidKey.append(bill_index)
         print(bill_row["Legislative_Session_Key"])
@@ -262,6 +262,3 @@ print(law_data)
 
 # Run Built-in Decision Tree Algorithm
 ############################################################
-
-
-
