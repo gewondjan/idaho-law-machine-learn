@@ -12,6 +12,9 @@ from sklearn import preprocessing as pp
 
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
+from xgboost import XGBClassifier
+from xgboost import plot_importance
+from matplotlib import pyplot
 
 bill_data = pd.read_csv("prepared_data.csv")
 #Remove the row number
@@ -62,5 +65,8 @@ target_test_actual_NB = myClassifierNB.predict(data_test)
 
 print(getAccuracy(target_test_expected, target_test_actual_NB))
 
-
+xgBoostClassifier = XGBClassifier()
+xgBoostClassifier.fit(data_train, target_train)
+plot_importance(xgBoostClassifier)
+pyplot.show()
 
