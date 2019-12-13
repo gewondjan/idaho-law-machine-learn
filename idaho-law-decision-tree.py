@@ -14,6 +14,12 @@ import math
 import statistics
 from sklearn import preprocessing as pp
 
+
+bill_target_values = pd.read_json("target_library.json")
+bill_target_values.drop(bill_target_values.columns.difference(["Adopted_or_Law", "Bill_Code"]), 1, inplace=True)
+print(bill_target_values) 
+
+
 law_data = pd.read_csv("legislation.csv")# This encoding might be necessary: encoding="ISO-8859-1")
 
 # Drop all Error Rows
@@ -53,6 +59,15 @@ for bill_index, bill_row in law_data.iterrows():
 errorRows = set(errorRows)
 # Drop the Error Rows
 law_data = law_data.drop(errorRows, axis=0)
+
+#Add target value to law_data
+#for bill_index, bill_row in law_data.iterrows():
+#    for target_index, target_row in bill_target_values.iterrows():
+#        if target_row["Bill_Code"] == bill_row[""]
+#
+#law_data["made_law"] = 
+
+
 
 # Remove commas from committee names
 
