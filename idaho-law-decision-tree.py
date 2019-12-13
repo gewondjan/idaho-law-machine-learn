@@ -38,6 +38,8 @@ for bill_index, bill_row in law_data.iterrows():
     if (bill_row["Topics"] == "" or isinstance(bill_row["Topics"], float)):
         errorRows.append(bill_index)
 
+    if (bill_row["Fiscal_Note"] == "" or isinstance(bill_row["Fiscal_Note"], float)):
+        errorRows.append(bill_index)
 
     # Drop rows that have errors instead of dates in introduction dates
     try:
@@ -58,15 +60,15 @@ errorRows = set(errorRows)
 # Drop the Error Rows
 law_data = law_data.drop(errorRows, axis=0)
 
-Add target value to law_data
-made_law = []
-#for bill_index, bill_row in law_data.iterrows():
-#    for target_index, target_row in bill_target_values.iterrows():
-#        if bill_row.Legislation_Code == target_row.Bill_Code:
-#            made_law.append(target_row["Adopted_or_Law"])
-#            break
+#Add target value to law_data
+# made_law = []
+# for bill_index, bill_row in law_data.iterrows():
+#     for target_index, target_row in bill_target_values.iterrows():
+#         if bill_row.Legislation_Code == target_row.Bill_Code:
+#             made_law.append(target_row["Adopted_or_Law"])
+#             break
 
-law_data.insert(0, "Made_Law", made_law)
+# law_data.insert(0, "Made_Law", made_law)
 
 # Remove commas from committee names
 def removeCommas(committeeName):
@@ -143,8 +145,8 @@ for ht in law_data.Hot_Topic:
 
 # Get Fiscal Note length make 3 buckets
 fiscal_note_lengths = law_data["Fiscal_Note"].str.len()
-mean = statistics.mean(fiscal_note_lengths)
 stdev = statistics.stdev(fiscal_note_lengths)
+mean = statistics.mean(fiscal_note_lengths)
 cost_column = []
 for (index, length) in enumerate(fiscal_note_lengths):
     if length < mean - stdev:
@@ -155,12 +157,14 @@ for (index, length) in enumerate(fiscal_note_lengths):
         cost_column.append('High')
 law_data.insert(0, 'cost', cost_column)
 
-# Get Summary length make 3 buckets
+print(law_data.cost.unique())
+
+# # Get Summary length make 3 buckets
 summary_lengths = law_data["Summary"].str.len()
 mean = statistics.mean(summary_lengths)
 stdev = statistics.stdev(summary_lengths)
 summary_length_column = []
-for (index, length) in enumerate(fiscal_note_lengths):
+for (index, length) in enumerate(summary_lengths):
     if length < mean - stdev:
         summary_length_column.append('Low')
     elif length < mean + stdev:
@@ -168,6 +172,8 @@ for (index, length) in enumerate(fiscal_note_lengths):
     else:
         summary_length_column.append('High')
 law_data.insert(0, 'Summary_Length', summary_length_column)
+
+print(law_data.Summary_Length.unique())
 
 # Categorize session introduction into percentiles (4 percentiles)
 
@@ -254,10 +260,11 @@ law_data = law_data.drop(["session_adjourned_date", "session_convened_date", "Le
                           "Introduction_Date", "Legislation_Name_Short", "Legislation_Code_Plus", "RS_Number"], axis=1)
 
 law_data.to_csv(path_or_buf="prepared_data.csv")
+print("done")
 
 # print(law_data)
 # random.shuffle(law_data)
-print(law_data)
+# print(law_data)
 
 # Run Built-in Decision Tree Algorithm
 ############################################################
