@@ -24,8 +24,8 @@ bill_data['Revised_SoP'] = le.fit_transform(bill_data['Revised_SoP'])
 bill_data['Amended'] = le.fit_transform(bill_data['Amended'])
 bill_data['Started_House_Or_Senate'] = le.fit_transform(bill_data['Started_House_Or_Senate'])
 bill_data['Summary_Length'] = le.fit_transform(bill_data['Summary_Length'])
+#bill_data['cost'] = le.fit_transform(bill_data['cost'])
 bill_data['No_Cost'] = le.fit_transform(bill_data['No_Cost'])
-
 
 # Convert to target and data sets
 targets = bill_data.Made_Law.values

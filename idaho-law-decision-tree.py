@@ -61,14 +61,14 @@ errorRows = set(errorRows)
 law_data = law_data.drop(errorRows, axis=0)
 
 #Add target value to law_data
-#made_law = []
-#for bill_index, bill_row in law_data.iterrows():
-#    for target_index, target_row in bill_target_values.iterrows():
-#        if bill_row.Legislation_Code == target_row.Bill_Code:
-#            made_law.append(target_row["Adopted_or_Law"])
-#            break
-#
-#law_data.insert(0, "Made_Law", made_law)
+made_law = []
+for bill_index, bill_row in law_data.iterrows():
+    for target_index, target_row in bill_target_values.iterrows():
+        if bill_row.Legislation_Code == target_row.Bill_Code:
+            made_law.append(target_row["Adopted_or_Law"])
+            break
+
+law_data.insert(0, "Made_Law", made_law)
 
 # Remove commas from committee names
 def removeCommas(committeeName):
@@ -257,9 +257,9 @@ law_data = law_data.drop(["session_adjourned_date", "session_convened_date", "Le
                           "Legislative_Session_Name_Long", "Legislative_Session_Key", "Legislative_Year",\
                           "Introduction_Date", "Legislation_Name_Short", "Legislation_Code_Plus", "RS_Number"], axis=1)
 
-#law_data.to_csv(path_or_buf="prepared_data.csv")
+law_data.to_csv(path_or_buf="prepared_data.csv")
 print("done")
-print(law_data["session_date_percentile"].value_counts())
+
 # print(law_data)
 # random.shuffle(law_data)
 # print(law_data)
