@@ -12,9 +12,11 @@ from sklearn import preprocessing as pp
 
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
-from xgboost import XGBClassifier
-from xgboost import plot_importance
+#from xgboost import XGBClassifier
+#from xgboost import plot_importance
 from matplotlib import pyplot
+from sklearn.neural_network import MLPClassifier
+from sklearn.tree import DecisionTreeClassifier
 
 bill_data = pd.read_csv("prepared_data.csv")
 #Remove the row number
@@ -30,17 +32,14 @@ bill_data['Summary_Length'] = le.fit_transform(bill_data['Summary_Length'])
 #bill_data['cost'] = le.fit_transform(bill_data['cost'])
 bill_data['No_Cost'] = le.fit_transform(bill_data['No_Cost'])
 
+#print(bill_data)
+
+
 # Convert to target and data sets
 targets = bill_data.Made_Law.values
 data = bill_data.drop(["Made_Law"], axis=1).values
 
-
-data_train, data_test, target_train, target_test_expected = train_test_split(data, targets, train_size=.70)
-
-
-myClassifier = GradientBoostingClassifier(n_estimators=1000)
-myClassifier.fit(data_train, target_train)
-target_test_actual_GBM = myClassifier.predict(data_test)
+data_train, data_test, target_train, target_test_expected = train_test_split(data, targets, test_size=.20)
 
 
 def getAccuracy(expected, actual):
@@ -49,24 +48,26 @@ def getAccuracy(expected, actual):
         if expected[i] == actual[i]:
             numberThatAreCorrect = numberThatAreCorrect + 1
     
-    return numberThatAreCorrect / len(expected)
+    return round((numberThatAreCorrect / len(expected)) * 100, 2)
 
-print(getAccuracy(target_test_expected, target_test_actual_GBM))
+def runMachineLearningAlgorithm(classifierArray, expected, training_data, training_targets, testing_data):
+    for classifier in classifierArray:
+        classifier.fit(training_data, training_targets)
+        target_test_actual = classifier.predict(testing_data)
+        print("{}: {}%".format(type(classifier), getAccuracy(expected, target_test_actual)))
+    return
 
-myClassifierKNN = KNeighborsClassifier(n_neighbors=3)
-myClassifierKNN.fit(data_train, target_train)
-target_test_actual_KNN = myClassifierKNN.predict(data_test)
 
-print(getAccuracy(target_test_expected, target_test_actual_KNN))
+classifiers = []
+classifiers =[GaussianNB(), KNeighborsClassifier(), GradientBoostingClassifier(), MLPClassifier(), MLPClassifier(hidden_layer_sizes= [3, 2]), DecisionTreeClassifier()]
 
-myClassifierNB = GaussianNB()
-myClassifierNB.fit(data_train, target_train)
-target_test_actual_NB = myClassifierNB.predict(data_test)
+runMachineLearningAlgorithm(classifiers, target_test_expected, data_train, target_train, data_test)
 
-print(getAccuracy(target_test_expected, target_test_actual_NB))
 
-xgBoostClassifier = XGBClassifier()
-xgBoostClassifier.fit(data_train, target_train)
-plot_importance(xgBoostClassifier)
-pyplot.show()
+
+
+#xgBoostClassifier = XGBClassifier()
+#xgBoostClassifier.fit(data_train, target_train)
+#plot_importance(xgBoostClassifier)
+#pyplot.show()
 
